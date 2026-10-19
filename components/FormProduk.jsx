@@ -3,9 +3,15 @@ import Tombol from "@/components/Tombol";
 
 // Dipakai untuk tambah produk (US-08) dan ubah produk (US-09). Keduanya bonus di jalur offline.
 // Nama field sama dengan kolom tabel "produk".
-export default function FormProduk({ produk = {}, labelTombol }) {
+export default function FormProduk({ produk = {}, labelTombol, action, error }) {
   return (
-    <form className="flex max-w-xl flex-col gap-4">
+    <form action={action} className="flex max-w-xl flex-col gap-4">
+      {error && (
+        <div className="rounded-lg border border-garis bg-permukaan p-3 text-sm text-bahaya">
+          {error}
+        </div>
+      )}
+      {produk.id && <input type="hidden" name="id" value={produk.id} />}
       <Input label="Nama produk" name="nama" defaultValue={produk.nama} required />
       <Input
         label="Harga (Rp)"
