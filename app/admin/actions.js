@@ -218,3 +218,65 @@ export async function hapusProduk(idOrFormData) {
   revalidatePath("/admin");
   redirect("/admin");
 }
+
+export async function buatDeskripsiProdukAI({ nama, kategori, fitur, tone }) {
+  const supabaseSesi = await buatKlienSesiAdmin();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabaseSesi.auth.getUser();
+
+  if (userError || !user) {
+    throw new Error("Akses ditolak: Anda harus login sebagai admin.");
+  }
+
+  if (!nama || !nama.trim()) {
+    throw new Error("Nama produk wajib diisi untuk membuat deskripsi AI.");
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (!apiKey) {
+    return `${nama.trim()} merupakan produk ${kategori || "unggulan"} pilihan terbaik. Dibuat dengan bahan berkualitas dan perhatian penuh pada standar mutu, sangat cocok untuk melengkapi kebutuhan harian maupun pesanan spesial Anda.`;
+  }
+
+  const prompt = `Kamu adalah copywriter profesional untuk produk UMKM Indonesia.
+Tuliskan deskripsi produk yang menarik, ringkas (2 sampai 3 kalimat), dan persuasif dalam bahasa Indonesia yang alami.
+
+Data Produk:
+- Nama Produk: ${nama}
+- Kategori: ${kategori || "Umum"}
+- Fitur / Keunggulan: ${fitur || "Kualitas terjamin, buatan lokal"}
+- Nada Bahasa (Tone): ${tone || "Ramah dan profesional"}
+
+Hanya tuliskan teks deskripsi langsung tanpa tanda bintang (*), tanpa judul tambahan, dan tanpa tanda kutip.`;
+
+  const apiResponse = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [{ text: prompt }],
+          },
+        ],
+      }),
+    }
+  );
+
+  if (!apiResponse.ok) {
+    const errText = await apiResponse.text();
+    throw new Error(`Gemini API error: ${errText}`);
+  }
+
+  const data = await apiResponse.json();
+  return (
+    data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ||
+    `${nama} pilihan terbaik dengan mutu dan kualitas terpercaya.`
+  );
+}
+

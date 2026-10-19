@@ -1,4 +1,4 @@
-import KartuProduk from "@/components/KartuProduk";
+import KatalogProduk from "@/components/KatalogProduk";
 import { toko } from "@/lib/toko";
 import { buatKlienServer } from "@/lib/supabase/server";
 
@@ -34,7 +34,7 @@ export default async function HalamanKatalog() {
         <p className="mt-4 text-sm text-teks-lembut">{toko.jamBuka}</p>
       </section>
 
-      <section aria-labelledby="judul-produk" className="flex flex-col gap-5">
+      <section aria-labelledby="judul-produk" className="flex flex-col gap-5 pb-16">
         <h2 id="judul-produk" className="text-xl font-bold">
           Produk kami
         </h2>
@@ -47,11 +47,7 @@ export default async function HalamanKatalog() {
         ) : daftarProduk.length === 0 ? (
           <p className="py-8 text-center text-teks-lembut">Belum ada produk</p>
         ) : (
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-            {daftarProduk.map((produk) => (
-              <KartuProduk key={produk.id} produk={produk} />
-            ))}
-          </div>
+          <KatalogProduk daftarProduk={daftarProduk} />
         )}
       </section>
     </>
